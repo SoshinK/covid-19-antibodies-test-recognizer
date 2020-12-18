@@ -86,12 +86,12 @@ def classify_type_1(img):
 
     
 TRUNK_PATH = Path(__file__).parent
-
+AUXILIARY_FILES = TRUNK_PATH.parent / 'auxiliary_files'
 
 def test():
     print(TRUNK_PATH)
     for im_n in [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13]:
-        img = cv2.imread(str(TRUNK_PATH / "dataset1" / "whole" / (str(im_n) + ".jpg")))
+        img = cv2.imread(str(AUXILIARY_FILES / "dataset1" / "whole" / (str(im_n) + ".jpg")))
         # img = cv2.imread("covid_recognition/masha.jpg")
         
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
