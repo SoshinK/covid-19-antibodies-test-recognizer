@@ -1,24 +1,17 @@
+from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2 as cv2
 import skimage.io as io
+from utils import get_shpae, order_points, four_point_transform
 
-from scipy.ndimage import gaussian_filter1d
+
 
 def largest_contour_type1(img):
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
  
     _, bin_img = cv2.threshold(img_gray,200,255,cv2.THRESH_BINARY)
     
-    # bin_img = cv2.adaptiveThreshold(img_gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,91,10)
-
-    # plt.imshow(bin_img)
-    # plt.show()
-    # plt.imshow(bin_img2)
-    # plt.show()
-
-    # bin_img = bin_img | bin_img2
-
     bin_img = 255 - bin_img
     kernel = np.ones((5,5))
     bin_img = cv2.morphologyEx(bin_img, cv2.MORPH_OPEN, kernel)
@@ -41,47 +34,6 @@ def largest_contour_type1(img):
     # plt.show()
 
     return hull
-
-def get_shpae(approx):
-    if len(approx) == 3:
-        shape = "triangle"
-    elif len(approx) == 4:
-        area = cv2.contourArea(approx)
-        perimeter = cv2.arcLength(approx, True) 
-        ar = area * 16 / perimeter**2
-        shape = "square" if ar >= 0.95 and ar <= 1.05 else "rectangle"
-    else:
-        shape = "circle"
-    return shape
-
-def order_points(pts):
-    rect = np.zeros((4, 2), dtype = "float32")
-    s = pts.reshape(4, 2).sum(axis = 1)
-    rect[0] = pts[np.argmin(s)]
-    rect[2] = pts[np.argmax(s)]
-    diff = np.diff(pts.reshape(4, 2), axis = 1)
-    rect[1] = pts[np.argmin(diff)]
-    rect[3] = pts[np.argmax(diff)]
-    return rect
-
-
-def four_point_transform(image, pts):
-    rect = order_points(pts)
-    (tl, tr, br, bl) = rect
-    widthA = np.sqrt(((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
-    widthB = np.sqrt(((tr[0] - tl[0]) ** 2) + ((tr[1] - tl[1]) ** 2))
-    maxWidth = max(int(widthA), int(widthB))
-    heightA = np.sqrt(((tr[0] - br[0]) ** 2) + ((tr[1] - br[1]) ** 2))
-    heightB = np.sqrt(((tl[0] - bl[0]) ** 2) + ((tl[1] - bl[1]) ** 2))
-    maxHeight = max(int(heightA), int(heightB))
-    dst = np.array([
-        [0, 0],
-        [maxWidth - 1, 0],
-        [maxWidth - 1, maxHeight - 1],
-        [0, maxHeight - 1]], dtype = "float32")
-    M = cv2.getPerspectiveTransform(rect, dst)
-    warped = cv2.warpPerspective(image, M, (maxWidth, maxHeight))
-    return warped
 
 
 def classify_type_1(img):
@@ -133,13 +85,13 @@ def classify_type_1(img):
     return ' '.join(answer)
 
     
-
+TRUNK_PATH = Path(__file__).parent
 
 
 def test():
+    print(TRUNK_PATH)
     for im_n in [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13]:
-    # for im_n in [1]:
-        img = cv2.imread("covid_recognition/dataset1/whole/" + str(im_n) + ".jpg")
+        img = cv2.imread(str(TRUNK_PATH / "dataset1" / "whole" / (str(im_n) + ".jpg")))
         # img = cv2.imread("covid_recognition/masha.jpg")
         
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
